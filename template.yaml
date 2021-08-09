@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "Simple object detect web app"
+  
+Globals:
+  Function:
+    Runtime: nodejs12.x
+    Timeout: 60
+    MemorySize: 1024
+    Tags:
+      Application: aws-object-detect-app
+
+Parameters: 
+  PictureBucketName:
+    Type: String
+    Default: aws-object-detect-picture-bucket
+    Description: "存储用户图片的存储桶名称"
+
+Resources:
+  # API Gateway
+  ObjectDetectApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowOrigins:
+          - "*"
+  
+  # API Function
+  UploadPictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/uploadPicture
+      Handler: app.handler
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref PictureBucket
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref PictureBucket
+      Events:
+        UploadPictureApi:
+          Type: HttpApi
+          Properties:
+            Path: /upload
+            Method: get
+            ApiId: !Ref ObjectDetectApi
+  
+  # S3 Bucket
+  PictureBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref PictureBucketName
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - "GET"
+              - "PUT"
+            AllowedOrigins:
+              - "*"
+  
+  # S3 Bucket Policy
+  PictureBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PictureBucket
+      PolicyDocument:
+        Id: PictureBucket
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicGetPicture
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub "arn:aws:s3:::${PictureBucket}/*"
+          
+Outputs:
+  ApiEndpoint:
+    Description: "Object Detect Api endpoint URL"
+    Value: !Sub "https://${ObjectDetectApi}.execute-api.${AWS::Region}.amazonaws.com"
+  
+  PictureURL:
+    Description: "Picture bucket url"
+    Value: !Sub "https://${PictureBucket}.s3.amazonaws.com/"

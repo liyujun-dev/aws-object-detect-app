@@ -1,0 +1,17 @@
+{
+  "name": "uploadPicture",
+  "version": "1.0.0",
+  "description": "创建存储桶Signed URL，用于上传图片",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "ServerlessLab",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.25.0",
+    "@aws-sdk/s3-request-presigner": "^3.25.0",
+    "uuid": "^8.3.2"
+  }
+}
