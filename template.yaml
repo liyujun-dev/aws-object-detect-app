@@ -48,6 +48,26 @@ Resources:
             Path: /upload
             Method: get
             ApiId: !Ref ObjectDetectApi
+    
+  DetectPictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/detectPicture
+      Handler: app.handler
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref PictureBucket
+      Events:
+        DetectPictureApi:
+          Type: HttpApi
+          Properties:
+            Path: /detect
+            Method: get
+            ApiId: !Ref ObjectDetectApi
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref PictureBucket
+        - RekognitionDetectOnlyPolicy: {}
   
   # S3 Bucket
   PictureBucket:
@@ -75,10 +95,10 @@ Resources:
         Statement:
           - Sid: PublicGetPicture
             Effect: Allow
-            Principal: '*'
+            Principal: "*"
             Action: 's3:GetObject'
             Resource: !Sub "arn:aws:s3:::${PictureBucket}/*"
-          
+
 Outputs:
   ApiEndpoint:
     Description: "Object Detect Api endpoint URL"

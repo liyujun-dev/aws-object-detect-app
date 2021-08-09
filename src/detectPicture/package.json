@@ -1,0 +1,15 @@
+{
+  "name": "detectPicture",
+  "version": "1.0.0",
+  "description": "识别图片中存在的各种物体的类别",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "ServerlessLab",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-rekognition": "^3.25.0"
+  }
+}

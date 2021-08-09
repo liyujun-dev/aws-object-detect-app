@@ -2,7 +2,7 @@ import requests
 
 api = "https://7pa6zs0wm6.execute-api.us-east-1.amazonaws.com"
 upload_api = f'{api}/upload'
-test_image = 'image.jpg'
+test_image = 'chicago.jpg'
 
 # 获取Upload Url
 def get_upload_url(api):
