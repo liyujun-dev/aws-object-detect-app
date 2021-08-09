@@ -10,6 +10,7 @@
   "author": "ServerlessLab",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-rekognition": "^3.25.0"
+    "@aws-sdk/client-rekognition": "^3.25.0",
+    "@aws-sdk/client-sqs": "^3.25.0"
   }
 }
