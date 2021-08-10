@@ -15,6 +15,11 @@ Parameters:
     Type: String
     Default: aws-object-detect-picture-bucket
     Description: "存储用户图片的存储桶名称"
+  
+  RecordQueueName:
+    Type: String
+    Default: aws-object-detect-record-queue
+    Description: "识别记录SQS队列名称"
 
 Resources:
   # API Gateway
@@ -57,6 +62,7 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref PictureBucket
+          QUEUE_URL: !Ref RecordQueue
       Events:
         DetectPictureApi:
           Type: HttpApi
@@ -67,7 +73,15 @@ Resources:
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref PictureBucket
+        - SQSSendMessagePolicy:
+            QueueName: !Ref RecordQueueName
         - RekognitionDetectOnlyPolicy: {}
+        
+  # SQS Queue
+  RecordQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref RecordQueueName
   
   # S3 Bucket
   PictureBucket:
@@ -105,5 +119,9 @@ Outputs:
     Value: !Sub "https://${ObjectDetectApi}.execute-api.${AWS::Region}.amazonaws.com"
   
   PictureURL:
-    Description: "Picture bucket url"
+    Description: "Picture Bucket URL"
     Value: !Sub "https://${PictureBucket}.s3.amazonaws.com/"
+  
+  RecordQueueUrl:
+    Description: "Record Queue URL"
+    Value: !Ref RecordQueue

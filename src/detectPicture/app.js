@@ -1,7 +1,7 @@
 const { RekognitionClient, DetectLabelsCommand } = require("@aws-sdk/client-rekognition");
-const { SQSClient } = require("@aws-sdk/client-sqs");
+const { SQSClient, SendMessageCommand } = require("@aws-sdk/client-sqs");
 
-const { BUCKET_NAME, AWS_REGION } = process.env;
+const { BUCKET_NAME, QUEUE_URL, AWS_REGION } = process.env;
 
 const response = (statusCode, data) => ({
   statusCode,
@@ -24,6 +24,16 @@ const detect = (key) => {
   return rekognition.send(command);
 }
 
+// 将识别记录发送到Record Queue
+const sendRecord = (record) => {
+  let sqs = new SQSClient({ region: AWS_REGION });
+  let command = new SendMessageCommand({
+    MessageBody: JSON.stringify(record),
+    QueueUrl: QUEUE_URL,
+  });
+  return sqs.send(command);
+};
+
 exports.handler = async(event, context) => {
   // 获取路由参数
   const { key } = event.queryStringParameters;
@@ -33,10 +43,12 @@ exports.handler = async(event, context) => {
 
   try {
     // 获取识别结果
-    let { Labels } = await detect(key);
-    return response(200, { results: Labels });
+    let { Labels: results } = await detect(key);
+    // 将记录发送到队列中
+    await sendRecord({ key, results, bucket: BUCKET_NAME });
+    return response(200, { results });
   }
   catch (error) {
     return response(400, { message: `请检查${BUCKET_NAME}中是否存在${key}` });
   }
-}
+};
