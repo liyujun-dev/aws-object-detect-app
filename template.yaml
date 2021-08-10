@@ -20,6 +20,11 @@ Parameters:
     Type: String
     Default: aws-object-detect-record-queue
     Description: "识别记录SQS队列名称"
+  
+  RecordTableName:
+    Type: String
+    Default: aws-object-detect-record-table
+    Description: "识别记录DynamoDB表名称"
 
 Resources:
   # API Gateway
@@ -76,12 +81,32 @@ Resources:
         - SQSSendMessagePolicy:
             QueueName: !Ref RecordQueueName
         - RekognitionDetectOnlyPolicy: {}
-        
+  
+  # Common Function
+  SaveRecordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/saveRecord
+      Handler: app.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref RecordTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref RecordTable
+      Events:
+        RecordQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RecordQueue.Arn
+            BatchSize: 10
+  
   # SQS Queue
   RecordQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Ref RecordQueueName
+      VisibilityTimeout: 60
   
   # S3 Bucket
   PictureBucket:
@@ -113,6 +138,25 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub "arn:aws:s3:::${PictureBucket}/*"
 
+  # DynamoDB Table
+  RecordTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref RecordTableName
+      AttributeDefinitions:
+        - AttributeName: "bucket"
+          AttributeType: S
+        - AttributeName: "key"
+          AttributeType: S
+      KeySchema:
+        - AttributeName: "bucket"
+          KeyType: HASH
+        - AttributeName: "key"
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: "5"
+        WriteCapacityUnits: "5"
+    
 Outputs:
   ApiEndpoint:
     Description: "Object Detect Api endpoint URL"

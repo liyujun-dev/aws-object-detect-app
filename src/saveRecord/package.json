@@ -1,0 +1,16 @@
+{
+  "name": "saveRecord",
+  "version": "1.0.0",
+  "description": "轮询RecordQueue获取Record，并将其存储到RecordTable",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "ServerlessLab",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.25.0",
+    "moment-timezone": "^0.5.33"
+  }
+}
