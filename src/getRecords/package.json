@@ -1,0 +1,15 @@
+{
+  "name": "getRecords",
+  "version": "1.0.0",
+  "description": "获取识别记录",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "ServerlessLab",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.25.0"
+  }
+}
