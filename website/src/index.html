@@ -20,11 +20,10 @@
     <main
       class="min-w-full h-full flex-grow bg-gray-100 flex justify-center"
       x-data="{
-        _key: '',
-        _boxes: [],
-        _confidences: [],
+        key: '',
+        boxes: [],
+        confidences: [],
         records: [],
-        ...dev(),
         loading: false,
         get picUrl () { return `${PICTURE_URL}/${this.key}` }
       }"
