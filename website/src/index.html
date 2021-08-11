@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Object Detect App</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./constants.js"></script>
+    <script src="./index.js"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.2.3/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body class="h-screen flex flex-col" x-data="{ ...utilities() }">
+    <header class="bg-gray-600 p-2 text-white">
+      <h1 class="font-bold text-xl md:text-lg p-2">AWS Object Detect App</h1>
+    </header>
+    <main
+      class="min-w-full h-full flex-grow bg-gray-100 flex justify-center"
+      x-data="{
+        _key: '',
+        _boxes: [],
+        _confidences: [],
+        records: [],
+        ...dev(),
+        loading: false,
+        get picUrl () { return `${PICTURE_URL}/${this.key}` }
+      }"
+      x-init="records = await getRecords()"
+    >
+      <!-- 图片展示区 -->
+      <div class="w-2/3 max-h-full p-8">
+        <div
+          class="
+            px-2.5
+            py-2
+            min-w-full
+            h-full
+            rounded-lg
+            flex
+            items-center
+            justify-center
+          "
+          :class="{'shadow-lg, bg-gray-800': key !== '' }"
+        >
+          <template x-if="key !== ''">
+            <div class="relative max-w-full">
+              <img class="min-w-full rounded" :src="picUrl" />
+
+              <!-- 标注框 -->
+              <template x-for="box in boxes">
+                <div
+                  class="
+                    group
+                    absolute
+                    border-2 border-indigo-600
+                    bg-gray-600 bg-opacity-20
+                    hover:cursor-pointer
+                  "
+                  :style="{ ...box }"
+                >
+                  <span
+                    class="
+                      group-hover:visible
+                      invisible
+                      absolute
+                      rounded
+                      text-center
+                      p-1
+                      px-4
+                      -mt-8
+                      bg-gray-800
+                      text-white text-sm
+                      z-10
+                    "
+                    x-text="box.name"
+                  >
+                  </span>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <div x-show="key === ''">
+            <input
+              type="file"
+              hidden
+              x-ref="fileInput"
+              accept="image/png, image/jpeg"
+              @change="async () => {
+                loading = true;
+                let file = $refs.fileInput.files[0];
+                if (checkFile(file)) {
+                  alert('文件大小必须小于5MB且为jpg, jpeg, png类型');
+                  return;
+                }
+                try {
+                  key = await uploadPicture(file);
+                  let { results } = await detectPicture(key);
+                  boxes = getBoundingBoxes(results);
+                  confidences = getConfidences(results);
+                  records = await getRecords();
+                } catch (error) {
+                  console.log(error);
+                }
+                loading = false;
+              }"
+            />
+            <button
+              class="
+                flex
+                items-center
+                px-4
+                py-3
+                text-xl
+                shadow-md
+                rounded
+                text-white
+                bg-indigo-500
+                hover:bg-indigo-600
+                active:bg-indigo-500
+                disabled:cursor-default disabled:bg-indigo-300
+                focus:outline-none
+              "
+              :disabled="loading"
+              @click="$refs.fileInput.click()"
+            >
+              <svg
+                class="
+                  w-5
+                  h-5
+                  fill-current
+                  stroke-current
+                  animate-spin
+                  text-gray-200
+                  mr-2
+                "
+                x-show="loading"
+                t="1628666429196"
+                viewBox="0 0 1024 1024"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                p-id="2247"
+              >
+                <path
+                  d="M546.462897 266.292966c-73.410207 0-133.15531-59.727448-133.155311-133.137656C413.307586 59.762759 473.05269 0 546.462897 0c73.410207 0 133.12 59.727448 133.12 133.15531 0 73.410207-59.709793 133.137655-133.12 133.137656z m-283.453794 105.736827c-67.054345 0-121.626483-54.554483-121.626482-121.644138s54.572138-121.644138 121.626482-121.644138a121.767724 121.767724 0 0 1 121.608828 121.644138c0 67.054345-54.554483 121.644138-121.608828 121.644138zM142.547862 647.185655A107.343448 107.343448 0 0 1 35.310345 539.895172a107.343448 107.343448 0 0 1 107.237517-107.237517 107.343448 107.343448 0 0 1 107.219862 107.237517 107.343448 107.343448 0 0 1-107.219862 107.272828z m120.461241 272.595862a91.047724 91.047724 0 0 1-90.941793-90.959448 91.065379 91.065379 0 0 1 90.924138-90.941793 91.065379 91.065379 0 0 1 90.941793 90.941793c0 50.14069-40.783448 90.959448-90.924138 90.959448zM546.462897 1024a79.518897 79.518897 0 0 1-79.448276-79.448276c0-43.820138 35.645793-79.448276 79.448276-79.448276a79.518897 79.518897 0 0 1 79.43062 79.448276c0 43.820138-35.628138 79.448276-79.448276 79.448276z m287.744-134.285241a64.194207 64.194207 0 0 1-64.123587-64.123587 64.194207 64.194207 0 0 1 64.123587-64.123586 64.194207 64.194207 0 0 1 64.123586 64.123586 64.194207 64.194207 0 0 1-64.123586 64.123587z m117.848275-296.695173a52.683034 52.683034 0 0 1-52.612413-52.612414 52.683034 52.683034 0 0 1 52.612413-52.630069 52.70069 52.70069 0 0 1 52.630069 52.612414 52.718345 52.718345 0 0 1-52.630069 52.630069z m-158.667034-338.696827a40.818759 40.818759 0 1 0 81.655172 0.017655 40.818759 40.818759 0 0 0-81.655172 0z"
+                  p-id="2248"
+                ></path>
+              </svg>
+              上传图片
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-1/3 flex flex-col pb-4 pr-4" x-show="key">
+        <!-- 检测结果区域 -->
+        <div class="mt-8">
+          <h2 class="text-xl font-bold">检测结果</h2>
+          <ul class="w-full h-60 overflow-x-hidden overflow-y-scroll mt-4">
+            <template x-for="item in confidences">
+              <li
+                class="
+                  flex
+                  justify-between
+                  pr-8
+                  px-4
+                  py-2
+                  mb-4
+                  border-b-2
+                  text-sm
+                "
+              >
+                <span x-text="item.name"></span>
+                <span x-text="item.percent"></span>
+              </li>
+            </template>
+          </ul>
+        </div>
+        <!-- 历史记录 -->
+        <div
+          class="
+            mt-2
+            px-2
+            border-t-1
+            flex-grow flex flex-nowrap
+            items-center
+            space-x-3
+            overflow-x-scroll
+          "
+        >
+          <template x-for="record in records">
+            <div
+              class="
+                px-3
+                py-2
+                w-32
+                h-32
+                flex-shrink-0
+                border-red-700
+                flex flex-col
+                items-center
+                hover:cursor-pointer
+              "
+              :class="{'border-2': key === record.key }"
+              @click="() => {
+                let { key: _key, results } = record;
+                key = _key;
+                boxes = getBoundingBoxes(results);
+                confidences = getConfidences(results);
+              }"
+            >
+              <img
+                :src="record.picUrl"
+                class="h-full w-full object-cover rounded shadow"
+              />
+              <p
+                class="mt-1 text-xs whitespace-nowrap"
+                x-text="record.created"
+              ></p>
+            </div>
+          </template>
+        </div>
+        <div class="flex-shrink p-4 flex space-x-6">
+          <button
+            class="
+              flex
+              items-center
+              px-3
+              py-2
+              shadow-md
+              rounded
+              text-white
+              bg-gray-500
+              hover:bg-gray-600
+              active:bg-gray-500
+              disabled:cursor-default disabled:bg-gray-300
+              focus:outline-none
+            "
+            :disabled="loading"
+            @click="$refs.fileInput.click()"
+          >
+            <svg
+              class="
+                w-4
+                h-4
+                fill-current
+                stroke-current
+                animate-spin
+                text-gray-200
+                mr-2
+              "
+              x-show="loading"
+              t="1628666429196"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2247"
+            >
+              <path
+                d="M546.462897 266.292966c-73.410207 0-133.15531-59.727448-133.155311-133.137656C413.307586 59.762759 473.05269 0 546.462897 0c73.410207 0 133.12 59.727448 133.12 133.15531 0 73.410207-59.709793 133.137655-133.12 133.137656z m-283.453794 105.736827c-67.054345 0-121.626483-54.554483-121.626482-121.644138s54.572138-121.644138 121.626482-121.644138a121.767724 121.767724 0 0 1 121.608828 121.644138c0 67.054345-54.554483 121.644138-121.608828 121.644138zM142.547862 647.185655A107.343448 107.343448 0 0 1 35.310345 539.895172a107.343448 107.343448 0 0 1 107.237517-107.237517 107.343448 107.343448 0 0 1 107.219862 107.237517 107.343448 107.343448 0 0 1-107.219862 107.272828z m120.461241 272.595862a91.047724 91.047724 0 0 1-90.941793-90.959448 91.065379 91.065379 0 0 1 90.924138-90.941793 91.065379 91.065379 0 0 1 90.941793 90.941793c0 50.14069-40.783448 90.959448-90.924138 90.959448zM546.462897 1024a79.518897 79.518897 0 0 1-79.448276-79.448276c0-43.820138 35.645793-79.448276 79.448276-79.448276a79.518897 79.518897 0 0 1 79.43062 79.448276c0 43.820138-35.628138 79.448276-79.448276 79.448276z m287.744-134.285241a64.194207 64.194207 0 0 1-64.123587-64.123587 64.194207 64.194207 0 0 1 64.123587-64.123586 64.194207 64.194207 0 0 1 64.123586 64.123586 64.194207 64.194207 0 0 1-64.123586 64.123587z m117.848275-296.695173a52.683034 52.683034 0 0 1-52.612413-52.612414 52.683034 52.683034 0 0 1 52.612413-52.630069 52.70069 52.70069 0 0 1 52.630069 52.612414 52.718345 52.718345 0 0 1-52.630069 52.630069z m-158.667034-338.696827a40.818759 40.818759 0 1 0 81.655172 0.017655 40.818759 40.818759 0 0 0-81.655172 0z"
+                p-id="2248"
+              ></path>
+            </svg>
+            再上传一张图片
+          </button>
+          <button
+            class="
+              flex
+              items-center
+              px-3
+              py-2
+              shadow-md
+              rounded
+              text-white
+              bg-blue-500
+              hover:bg-blue-600
+              active:bg-blue-500
+              disabled:cursor-default disabled:bg-blue-300
+              focus:outline-none
+            "
+            :disabled="loading"
+            @click="async () => {
+              loading = true;
+              try {
+                let { results } = await detectPicture(key);
+                boxes = getBoundingBoxes(results);
+                confidences = getConfidences(results);
+              } catch (error) {
+                console.log(error);
+              }
+              loading = false;
+            }"
+          >
+            <svg
+              class="
+                w-4
+                h-4
+                fill-current
+                stroke-current
+                animate-spin
+                text-gray-200
+                mr-2
+              "
+              x-show="loading"
+              t="1628666429196"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2247"
+            >
+              <path
+                d="M546.462897 266.292966c-73.410207 0-133.15531-59.727448-133.155311-133.137656C413.307586 59.762759 473.05269 0 546.462897 0c73.410207 0 133.12 59.727448 133.12 133.15531 0 73.410207-59.709793 133.137655-133.12 133.137656z m-283.453794 105.736827c-67.054345 0-121.626483-54.554483-121.626482-121.644138s54.572138-121.644138 121.626482-121.644138a121.767724 121.767724 0 0 1 121.608828 121.644138c0 67.054345-54.554483 121.644138-121.608828 121.644138zM142.547862 647.185655A107.343448 107.343448 0 0 1 35.310345 539.895172a107.343448 107.343448 0 0 1 107.237517-107.237517 107.343448 107.343448 0 0 1 107.219862 107.237517 107.343448 107.343448 0 0 1-107.219862 107.272828z m120.461241 272.595862a91.047724 91.047724 0 0 1-90.941793-90.959448 91.065379 91.065379 0 0 1 90.924138-90.941793 91.065379 91.065379 0 0 1 90.941793 90.941793c0 50.14069-40.783448 90.959448-90.924138 90.959448zM546.462897 1024a79.518897 79.518897 0 0 1-79.448276-79.448276c0-43.820138 35.645793-79.448276 79.448276-79.448276a79.518897 79.518897 0 0 1 79.43062 79.448276c0 43.820138-35.628138 79.448276-79.448276 79.448276z m287.744-134.285241a64.194207 64.194207 0 0 1-64.123587-64.123587 64.194207 64.194207 0 0 1 64.123587-64.123586 64.194207 64.194207 0 0 1 64.123586 64.123586 64.194207 64.194207 0 0 1-64.123586 64.123587z m117.848275-296.695173a52.683034 52.683034 0 0 1-52.612413-52.612414 52.683034 52.683034 0 0 1 52.612413-52.630069 52.70069 52.70069 0 0 1 52.630069 52.612414 52.718345 52.718345 0 0 1-52.630069 52.630069z m-158.667034-338.696827a40.818759 40.818759 0 1 0 81.655172 0.017655 40.818759 40.818759 0 0 0-81.655172 0z"
+                p-id="2248"
+              ></path>
+            </svg>
+            重新检测
+          </button>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
