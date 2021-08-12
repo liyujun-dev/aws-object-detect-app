@@ -5,7 +5,7 @@ const API_URL = "";
 // Object Detect App Client Id
 const CLIENT_ID = "";
 // Object Detect App User Pool Id
-const USER_POOL_ID = ";
+const USER_POOL_ID = "";
 // ISS URL
 const ISS_URL = "";
 // Object Detect App User Pool Domain
