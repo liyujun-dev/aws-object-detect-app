@@ -35,6 +35,11 @@ Parameters:
     Type: String
     Default: object-detect-app
     Description: "Cognito登录注册页域名，不能以aws或cognito开头"
+  
+  WebsiteBucketName:
+    Type: String
+    Default: aws-object-detect-app-website-bucket
+    Description: "托管前端页面的S3存储桶名称"
 
 Resources:
   # API Gateway
@@ -167,13 +172,21 @@ Resources:
             AllowedOrigins:
               - "*"
   
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref WebsiteBucketName
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: "index.html"
+  
   # S3 Bucket Policy
   PictureBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref PictureBucket
       PolicyDocument:
-        Id: PictureBucket
+        Id: PictureBucketPolicy
         Version: 2012-10-17
         Statement:
           - Sid: PublicGetPicture
@@ -181,6 +194,20 @@ Resources:
             Principal: "*"
             Action: 's3:GetObject'
             Resource: !Sub "arn:aws:s3:::${PictureBucket}/*"
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Id: WebsiteBucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicVisitWebsite
+            Effect: Allow
+            Principal: "*"
+            Action: 's3:GetObject'
+            Resource: !Sub "arn:aws:s3:::${WebsiteBucket}/*"
 
   # DynamoDB Table
   RecordTable:
@@ -232,9 +259,9 @@ Resources:
       AllowedOAuthFlows:
         - "implicit"
       CallbackURLs:
-        - "http://localhost:5500/src/"
+        - !Sub "https://${WebsiteBucket}.s3.amazonaws.com/index.html"
       LogoutURLs:
-        - "http://localhost:5500/src/"
+        - !Sub "https://${WebsiteBucket}.s3.amazonaws.com/index.html"
       SupportedIdentityProviders:
         - "COGNITO"
       AllowedOAuthScopes:
@@ -258,7 +285,11 @@ Outputs:
   
   PictureURL:
     Description: "Picture Bucket URL"
-    Value: !Sub "https://${PictureBucket}.s3.amazonaws.com/"
+    Value: !Sub "https://${PictureBucket}.s3.amazonaws.com"
+  
+  WebsiteURL:
+    Description: "Object Detect App Website"
+    Value: !Sub "https://${WebsiteBucket}.s3.amazonaws.com/index.html"
   
   RecordQueueUrl:
     Description: "Record Queue URL"
@@ -277,5 +308,5 @@ Outputs:
     Value: !Ref ObjectDetectUserPoolClient
   
   ObjectDetectUserPoolISSUrl:
-    Description: "Use for verify JWT Token"
+    Description: "ISS URL"
     Value: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${ObjectDetectUserPool}"
