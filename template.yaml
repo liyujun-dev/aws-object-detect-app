@@ -25,6 +25,16 @@ Parameters:
     Type: String
     Default: aws-object-detect-record-table
     Description: "识别记录DynamoDB表名称"
+  
+  ObjectDetectUserPoolName:
+    Type: String
+    Default: object-detect-app-users
+    Description: "Cognito User Pool名称，不能以aws或cognito开头"
+    
+  ObjectDetectUserPoolClientDomain:
+    Type: String
+    Default: object-detect-app
+    Description: "Cognito登录注册页域名，不能以aws或cognito开头"
 
 Resources:
   # API Gateway
@@ -176,9 +186,59 @@ Resources:
         ReadCapacityUnits: "5"
         WriteCapacityUnits: "5"
     
+  # Cognito User Pool
+  ObjectDetectUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: False
+      UserPoolName: !Ref ObjectDetectUserPoolName
+      AutoVerifiedAttributes:
+        - "email"
+      Schema:
+        - Mutable: False
+          Name: "email"
+          Required: True
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 6
+          RequireLowercase: True
+          RequireNumbers: False
+          RequireSymbols: False
+          RequireUppercase: True
+  
+  # Cognito App Client
+  ObjectDetectUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref ObjectDetectUserPool
+      GenerateSecret: False
+      AllowedOAuthFlowsUserPoolClient: True
+      AllowedOAuthFlows:
+        - "implicit"
+      CallbackURLs:
+        - "http://localhost:5500/src/"
+      LogoutURLs:
+        - "http://localhost:5500/src/"
+      SupportedIdentityProviders:
+        - "COGNITO"
+      AllowedOAuthScopes:
+        - "email"
+        - "openid"
+      ExplicitAuthFlows:
+        - "ALLOW_USER_PASSWORD_AUTH"
+        - "ALLOW_REFRESH_TOKEN_AUTH"
+        
+  # Cognito Domain
+  ObjectDetectUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref ObjectDetectUserPoolClientDomain
+      UserPoolId: !Ref ObjectDetectUserPool
+    
 Outputs:
   ApiEndpoint:
-    Description: "Object Detect Api endpoint URL"
+    Description: "Object Detect Api Endpoint URL"
     Value: !Sub "https://${ObjectDetectApi}.execute-api.${AWS::Region}.amazonaws.com"
   
   PictureURL:
@@ -188,3 +248,19 @@ Outputs:
   RecordQueueUrl:
     Description: "Record Queue URL"
     Value: !Ref RecordQueue
+    
+  ObjectDetectUserPoolId:
+    Description: "Object Detect App User Pool Id"
+    Value: !Ref ObjectDetectUserPool
+  
+  ObjectDetectUserPoolDomain:
+    Description: "Object Detect App User Pool Domain"
+    Value: !Sub "https://${ObjectDetectUserPoolDomain}.auth.${AWS::Region}.amazoncognito.com"
+  
+  ObjectDetectUserPoolClientId:
+    Description: "Object Detect App Client Id"
+    Value: !Ref ObjectDetectUserPoolClient
+  
+  ObjectDetectUserPoolISSUrl:
+    Description: "Use for verify JWT Token"
+    Value: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${ObjectDetectUserPool}"
