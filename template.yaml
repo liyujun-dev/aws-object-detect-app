@@ -48,6 +48,15 @@ Resources:
           - "*"
         AllowOrigins:
           - "*"
+      Auth:
+        Authorizers:
+          OpenIdAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              audience:
+                - !Ref ObjectDetectUserPoolClient
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${ObjectDetectUserPool}"
+        DefaultAuthorizer: OpenIdAuthorizer
   
   # API Function
   UploadPictureFunction:
@@ -68,6 +77,8 @@ Resources:
             Path: /upload
             Method: get
             ApiId: !Ref ObjectDetectApi
+            Auth:
+              Authorizer: OpenIdAuthorizer
     
   DetectPictureFunction:
     Type: AWS::Serverless::Function
@@ -85,6 +96,8 @@ Resources:
             Path: /detect
             Method: get
             ApiId: !Ref ObjectDetectApi
+            Auth:
+              Authorizer: OpenIdAuthorizer
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref PictureBucket
@@ -110,6 +123,8 @@ Resources:
             Path: /records
             Method: get
             ApiId: !Ref ObjectDetectApi
+            Auth:
+              Authorizer: OpenIdAuthorizer
   
   # Common Function
   SaveRecordFunction:
