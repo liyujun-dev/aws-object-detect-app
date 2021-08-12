@@ -7,6 +7,8 @@
     <title>AWS Object Detect App</title>
     <link rel="stylesheet" href="./styles.css" />
     <script src="./constants.js"></script>
+    <script src="./jwt-decode.js"></script>
+    <script src="./auth.js"></script>
     <script src="./index.js"></script>
     <script
       defer
@@ -14,8 +16,59 @@
     ></script>
   </head>
   <body class="h-screen flex flex-col" x-data="{ ...utilities() }">
-    <header class="bg-gray-600 p-2 text-white">
-      <h1 class="font-bold text-xl md:text-lg p-2">AWS Object Detect App</h1>
+    <header
+      class="bg-gray-600 px-4 py-2 flex justify-between items-center"
+      x-data="{ userInfo: {} }"
+      x-init="userInfo = await getUserInfo()"
+    >
+      <h1 class="font-bold text-xl text-white md:text-lg p-2">
+        AWS Object Detect App
+      </h1>
+      <div class="relative" x-data="{ show: false }">
+        <button
+          class="
+            px-4
+            py-2
+            text-indigo-100
+            rounded
+            hover:bg-opacity-20 hover:bg-indigo-200
+          "
+          @click="show = true"
+          @click.outside="show = false"
+          x-text="userInfo.username"
+        ></button>
+        <ul
+          x-show="show"
+          class="
+            absolute
+            -right-3
+            bg-indigo-200
+            py-2
+            px-4
+            rounded
+            shadow
+            font-medium
+            text-center
+          "
+        >
+          <li class="py-2 text-lg" x-text="userInfo.email"></li>
+          <li class="py-2 text-white">
+            <button
+              class="
+                bg-indigo-500
+                hover:bg-indigo-600
+                active:bg-indigo-500
+                px-8
+                py-2
+                rounded
+              "
+              @click="logout()"
+            >
+              退出登录
+            </button>
+          </li>
+        </ul>
+      </div>
     </header>
     <main
       class="min-w-full h-full flex-grow bg-gray-100 flex justify-center"
@@ -214,6 +267,7 @@
               <img
                 :src="record.picUrl"
                 class="h-full w-full object-cover rounded shadow"
+                loading="lazy"
               />
               <p
                 class="mt-1 text-xs whitespace-nowrap"

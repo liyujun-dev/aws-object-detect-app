@@ -1,8 +1,12 @@
+const headers = {
+  Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+}
 const api = {
   detect: (key) =>
-    fetch(`${API_URL}/detect?key=${key}`).then((res) => res.json()),
-  upload: () => fetch(`${API_URL}/upload`).then((res) => res.json()),
-	records: () => fetch(`${API_URL}/records`).then((res) => res.json()),
+    fetch(`${API_URL}/detect?key=${key}`, { headers }).then((res) => res.json()),
+  upload: () => fetch(`${API_URL}/upload`, { headers }).then((res) => res.json()),
+	records: () => fetch(`${API_URL}/records`, { headers }).then((res) => res.json()),
+  userinfo: () => fetch(USER_INFO_URL, { headers }).then((res) => res.json())
 };
 
 document.addEventListener("alpine:init", () => {
@@ -73,6 +77,20 @@ document.addEventListener("alpine:init", () => {
 			} catch (error) {
 				return error;
 			}
-		}
+		},
+
+    getUserInfo: async () => {
+      try {
+        let { email, username } = await api.userinfo();
+        return { email, username };
+      } catch(error) {
+        console.log(error);
+      }
+    },
+
+    logout: () => {
+      localStorage.clear();
+      location.href = LOGOUT_URL;
+    }
   }));
 });
