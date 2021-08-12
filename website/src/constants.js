@@ -1,12 +1,15 @@
-// PicturBucket URL
-const PICTURE_URL = "https://aws-object-detect-picture-bucket.s3.amazonaws.com";
-// API Gateway URL
-const API_URL = "https://aik01fw719.execute-api.us-east-1.amazonaws.com";
-// Cognito
-const CLIENT_ID = "544cfusfsumga6ehjrdr817551";
-const USER_POOL_ID = "us-east-1_sHsI75IPU";
-const ISS_URL = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_sHsI75IPU";
-const COGNITO_DOMAIN = "https://object-detect-app.auth.us-east-1.amazoncognito.com";
+// Picture Bucket URL
+const PICTURE_URL = "";
+// Object Detect Api Endpoint URL
+const API_URL = "";
+// Object Detect App Client Id
+const CLIENT_ID = "";
+// Object Detect App User Pool Id
+const USER_POOL_ID = ";
+// ISS URL
+const ISS_URL = "";
+// Object Detect App User Pool Domain
+const COGNITO_DOMAIN = "";
 
 // Cognito URL 定义
 const DIRECT_URL = (new URL(location)).origin;
