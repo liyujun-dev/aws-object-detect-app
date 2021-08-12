@@ -188,12 +188,12 @@ Resources:
     Properties:
       TableName: !Ref RecordTableName
       AttributeDefinitions:
-        - AttributeName: "bucket"
+        - AttributeName: "username"
           AttributeType: S
         - AttributeName: "key"
           AttributeType: S
       KeySchema:
-        - AttributeName: "bucket"
+        - AttributeName: "username"
           KeyType: HASH
         - AttributeName: "key"
           KeyType: RANGE

@@ -34,18 +34,20 @@ const sendRecord = (record) => {
   return sqs.send(command);
 };
 
-exports.handler = async(event, context) => {
+exports.handler = async(event) => {
   // 获取路由参数
   const { key } = event.queryStringParameters;
   if (key === undefined || key === "") {
     return response(400, { message: "参数key不能为空" });
   }
+  // 获取username
+  const { username } = event.requestContext.authorizer.jwt.claims;
 
   try {
     // 获取识别结果
     let { Labels: results } = await detect(key);
     // 将记录发送到队列中
-    await sendRecord({ key, results, bucket: BUCKET_NAME });
+    await sendRecord({ key, results, username });
     return response(200, { results });
   }
   catch (error) {

@@ -9,14 +9,14 @@ const addRecord = (record) => {
   let dynamodb = new DynamoDBClient({ region: AWS_REGION });
   // 获取当前时间
   let created = moment().tz("Asia/Shanghai").format("YYYY-MM-DD HH:mm:SS");
-  let { bucket, key, results } = record;
+  let { username, key, results } = record;
   let command = new PutItemCommand({
     TableName: TABLE_NAME,
     // Item中的所有参数需要指定其数据类型
     // S表示String字符串
     Item: {
       key: { S: key },
-      bucket: { S: bucket },
+      username: { S: username },
       results: { S: JSON.stringify(results) },
       created: { S: created }
     }
