@@ -17,7 +17,7 @@ const addRecord = (record) => {
     Item: {
       key: { S: key },
       bucket: { S: bucket },
-      result: { S: JSON.stringify(results) },
+      results: { S: JSON.stringify(results) },
       created: { S: created }
     }
   });

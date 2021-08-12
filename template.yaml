@@ -82,6 +82,25 @@ Resources:
             QueueName: !Ref RecordQueueName
         - RekognitionDetectOnlyPolicy: {}
   
+  GetRecordsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/getRecords
+      Handler: app.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref RecordTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref RecordTable
+      Events:
+        GetRecordsApi:
+          Type: HttpApi
+          Properties:
+            Path: /records
+            Method: get
+            ApiId: !Ref ObjectDetectApi
+  
   # Common Function
   SaveRecordFunction:
     Type: AWS::Serverless::Function
