@@ -13,17 +13,17 @@ Globals:
 Parameters: 
   PictureBucketName:
     Type: String
-    Default: aws-object-detect-picture-bucket
+    Default: object-detect-app-picture-bucket
     Description: "存储用户图片的存储桶名称"
   
   RecordQueueName:
     Type: String
-    Default: aws-object-detect-record-queue
+    Default: object-detect-app-record-queue
     Description: "识别记录SQS队列名称"
   
   RecordTableName:
     Type: String
-    Default: aws-object-detect-record-table
+    Default: object-detect-app-record-table
     Description: "识别记录DynamoDB表名称"
   
   ObjectDetectUserPoolName:
@@ -38,7 +38,7 @@ Parameters:
   
   WebsiteBucketName:
     Type: String
-    Default: aws-object-detect-app-website-bucket
+    Default: object-detect-app-website-bucket
     Description: "托管前端页面的S3存储桶名称"
 
 Resources:
