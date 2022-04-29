@@ -12,6 +12,8 @@
 
    ```bash
    sam build
+   // 创建存储桶
+   aws s3 mb s3://aws-object-detect-app
    sam package \
        --template-file template.yaml \
        --s3-bucket aws-object-detect-app \
