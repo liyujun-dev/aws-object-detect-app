@@ -2,10 +2,11 @@
 
 ## 快速使用
 
-1. 获取项目
+1. 获取项目并安装依赖
 
    ```bash
-    git clone https://github.com/suricatta1998/aws-object-detect-app.git
+   git clone https://github.com/suricatta1998/aws-object-detect-app.git
+   cd aws-object-detect-app && npx recursive-install
    ```
 
 2. 构建、打包并部署。
@@ -45,8 +46,10 @@
 4. 将静态网页上传到存储桶中。
 
    ```bash
+   cd website
    aws s3 cp \
-       aws-object-detect-app/website/src \
+       src \
        s3://object-detect-app-website-bucket \
        --recursive
+       --exclude=node_modules
    ```
