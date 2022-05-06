@@ -46,10 +46,8 @@
 4. 将静态网页上传到存储桶中。
 
    ```bash
-   cd website
    aws s3 cp \
-       src \
+       website/src \
        s3://object-detect-app-website-bucket \
        --recursive
-       --exclude=node_modules
    ```
